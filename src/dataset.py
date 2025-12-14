@@ -4,6 +4,8 @@ import numpy as np
 import SimpleITK as sitk
 import torch
 from torch.utils.data import Dataset
+import random
+from scipy.ndimage import rotate
 
 class LunaDataset(Dataset):
     def __init__(self, root_dir, candidates_file, annotations_file=None, subset_indices=None, patch_size=(64, 64, 64)):
@@ -152,14 +154,16 @@ class LunaDataset(Dataset):
         return patch
 
 class ProcessedLunaDataset(Dataset):
-    def __init__(self, processed_dir, transform=None):
+    def __init__(self, processed_dir, transform=None, augment=False):
         """
         Args:
             processed_dir (string): Directory containing 'metadata.csv' and 'patches/' folder.
             transform (callable, optional): Optional transform to be applied on a sample.
+            augment (bool): Whether to apply data augmentation.
         """
         self.processed_dir = processed_dir
         self.metadata_file = os.path.join(processed_dir, 'metadata.csv')
+        self.augment = augment
         
         if not os.path.exists(self.metadata_file):
             raise FileNotFoundError(f"Metadata file not found at {self.metadata_file}. Run preprocess.py first.")
@@ -180,8 +184,25 @@ class ProcessedLunaDataset(Dataset):
         # Load patch
         patch = np.load(file_path)
         
+        if self.augment:
+            patch = self._augment(patch)
+        
         # Convert to tensor (C, D, H, W)
         # patch is (64, 64, 64) -> (1, 64, 64, 64)
-        patch_tensor = torch.from_numpy(patch).float().unsqueeze(0)
+        patch_tensor = torch.from_numpy(patch.copy()).float().unsqueeze(0)
         
         return patch_tensor, torch.tensor(label, dtype=torch.float32)
+
+    def _augment(self, patch):
+        # Random rotation
+        if random.random() > 0.5:
+            angle = random.choice([90, 180, 270])
+            axes = random.choice([(0, 1), (1, 2), (0, 2)])
+            patch = rotate(patch, angle, axes=axes, reshape=False)
+            
+        # Random flip
+        if random.random() > 0.5:
+            axis = random.choice([0, 1, 2])
+            patch = np.flip(patch, axis=axis)
+            
+        return patch

@@ -21,7 +21,8 @@ def train(config):
     if use_processed and os.path.exists(config['processed_dir']):
         print(f"Loading processed data from {config['processed_dir']}...")
         train_dataset = ProcessedLunaDataset(
-            processed_dir=config['processed_dir']
+            processed_dir=config['processed_dir'],
+            augment=True # Enable augmentation for training
         )
     else:
         print("Loading raw data (this might be slow)...")
