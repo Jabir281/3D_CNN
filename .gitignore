@@ -1,0 +1,24 @@
+# Data
+data/
+*.zip
+*.mhd
+*.raw
+*.zraw
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+env/
+venv/
+
+# VS Code
+.vscode/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+Thumbs.db
