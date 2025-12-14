@@ -11,9 +11,10 @@ The project uses the **LUNA16 (LUng Nodule Analysis 2016)** dataset, which is a 
 ### Download Instructions
 
 1.  Go to the Zenodo link above.
-2.  Download `candidates.csv` and `annotations.csv`.
+2.  **Download `candidates.csv` and `annotations.csv` separately.** These are NOT included inside `subset0.zip`. You must download them individually from the file list on the Zenodo page.
 3.  Download `subset0.zip` (this project is configured to use subset0).
-4.  Extract the files into the `data/` directory.
+4.  Extract `subset0.zip` into `data/` so you have a `data/subset0/` folder.
+5.  Place `candidates.csv` and `annotations.csv` directly in the `data/` folder.
 
 **Expected Directory Structure:**
 

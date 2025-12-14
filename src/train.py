@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
-from dataset import LunaDataset
+from dataset import LunaDataset, ProcessedLunaDataset
 from model import Simple3DCNN
 from tqdm import tqdm
 import os
@@ -15,15 +15,22 @@ def train(config):
     batch_size = config.get('batch_size', 4)
     learning_rate = config.get('learning_rate', 0.001)
     num_epochs = config.get('num_epochs', 10)
+    use_processed = config.get('use_processed', False)
     
     # Dataset and DataLoader
-    # Note: You need to point these to the actual locations of your data
-    train_dataset = LunaDataset(
-        root_dir=config['data_dir'],
-        candidates_file=config['candidates_file'],
-        annotations_file=config.get('annotations_file'),
-        patch_size=(64, 64, 64)
-    )
+    if use_processed and os.path.exists(config['processed_dir']):
+        print(f"Loading processed data from {config['processed_dir']}...")
+        train_dataset = ProcessedLunaDataset(
+            processed_dir=config['processed_dir']
+        )
+    else:
+        print("Loading raw data (this might be slow)...")
+        train_dataset = LunaDataset(
+            root_dir=config['data_dir'],
+            candidates_file=config['candidates_file'],
+            annotations_file=config.get('annotations_file'),
+            patch_size=(64, 64, 64)
+        )
     
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=0)
     
@@ -68,13 +75,17 @@ if __name__ == "__main__":
         'data_dir': 'data/subset0', # Example: path to subset0 folder
         'candidates_file': 'data/candidates.csv',
         'annotations_file': 'data/annotations.csv',
+        'processed_dir': 'data/processed',
+        'use_processed': True, # Set to True to use preprocessed data
         'batch_size': 4,
         'learning_rate': 1e-4,
         'num_epochs': 5
     }
     
     # Check if data exists before running
-    if not os.path.exists(config['data_dir']) or not os.path.exists(config['candidates_file']):
+    if config['use_processed'] and os.path.exists(config['processed_dir']):
+        train(config)
+    elif not os.path.exists(config['data_dir']) or not os.path.exists(config['candidates_file']):
         print("Data not found. Please download the LUNA16 dataset and update the config paths.")
         print(f"Looking for data in: {config['data_dir']}")
     else:

@@ -150,3 +150,38 @@ class LunaDataset(Dataset):
         patch = np.clip(patch, min_hu, max_hu)
         patch = (patch - min_hu) / (max_hu - min_hu)
         return patch
+
+class ProcessedLunaDataset(Dataset):
+    def __init__(self, processed_dir, transform=None):
+        """
+        Args:
+            processed_dir (string): Directory containing 'metadata.csv' and 'patches/' folder.
+            transform (callable, optional): Optional transform to be applied on a sample.
+        """
+        self.processed_dir = processed_dir
+        self.metadata_file = os.path.join(processed_dir, 'metadata.csv')
+        
+        if not os.path.exists(self.metadata_file):
+            raise FileNotFoundError(f"Metadata file not found at {self.metadata_file}. Run preprocess.py first.")
+            
+        self.metadata = pd.read_csv(self.metadata_file)
+        self.transform = transform
+
+    def __len__(self):
+        return len(self.metadata)
+
+    def __getitem__(self, idx):
+        row = self.metadata.iloc[idx]
+        filename = row['filename']
+        label = row['label']
+        
+        file_path = os.path.join(self.processed_dir, 'patches', filename)
+        
+        # Load patch
+        patch = np.load(file_path)
+        
+        # Convert to tensor (C, D, H, W)
+        # patch is (64, 64, 64) -> (1, 64, 64, 64)
+        patch_tensor = torch.from_numpy(patch).float().unsqueeze(0)
+        
+        return patch_tensor, torch.tensor(label, dtype=torch.float32)
