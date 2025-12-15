@@ -93,3 +93,23 @@ python src/evaluate.py
 
 *   **Data Augmentation:** Random rotation and flipping are now applied during training to improve model generalization.
 *   **Evaluation Script:** A dedicated script `src/evaluate.py` is provided to assess model performance.
+*   **Grad-CAM:** Added a Grad-CAM implementation for 3D CNNs and a demo script to visualize model attention on preprocessed patches.
+
+### Grad-CAM (explainability)
+
+To generate and visualize Grad-CAM overlays for a preprocessed patch:
+
+1.  Ensure you have a trained checkpoint (for example `model_epoch_5.pth`) and preprocessed patches in `data/processed`.
+2.  Run the demo script:
+
+```bash
+python src/gradcam_demo.py --model model_epoch_5.pth --index 0
+```
+
+This will create `gradcam_0.png` showing the middle axial slice with the Grad-CAM heatmap overlaid.
+
+Notes about the implementation:
+
+- Grad-CAM uses gradients flowing into the final 3D convolutional layer (`conv4`) to compute a coarse localization map.
+- The output is upsampled to the input patch size and normalized so values are in [0,1].
+- You can change the target layer by passing a different `target_layer_name` when creating the `GradCAM` object.
