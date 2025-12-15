@@ -95,21 +95,31 @@ python src/evaluate.py
 *   **Evaluation Script:** A dedicated script `src/evaluate.py` is provided to assess model performance.
 *   **Grad-CAM:** Added a Grad-CAM implementation for 3D CNNs and a demo script to visualize model attention on preprocessed patches.
 
-### Grad-CAM (explainability)
+### 5. Visualization & Explainability (Grad-CAM)
 
-To generate and visualize Grad-CAM overlays for a preprocessed patch:
-
-1.  Ensure you have a trained checkpoint (for example `model_epoch_5.pth`) and preprocessed patches in `data/processed`.
-2.  Run the demo script:
+To generate visualizations of the model's attention (Grad-CAM) for a report, run:
 
 ```bash
-python src/gradcam_demo.py --model model_epoch_5.pth --index 0
+python src/visualize.py
 ```
 
-This will create `gradcam_0.png` showing the middle axial slice with the Grad-CAM heatmap overlaid.
+This will create a `results/visualizations/` folder containing images of True Positives (TP), False Positives (FP), etc., with the Grad-CAM heatmap overlaid. This helps in understanding what the model is looking at.
 
-Notes about the implementation:
+You can also explore Grad-CAM interactively in the `notebooks/exploration.ipynb` notebook.
 
-- Grad-CAM uses gradients flowing into the final 3D convolutional layer (`conv4`) to compute a coarse localization map.
-- The output is upsampled to the input patch size and normalized so values are in [0,1].
-- You can change the target layer by passing a different `target_layer_name` when creating the `GradCAM` object.
+## Code Structure
+
+*   `src/dataset.py`: `LunaDataset` (raw data) and `ProcessedLunaDataset` (preprocessed data) classes.
+*   `src/preprocess.py`: Script to extract patches and generate metadata.
+*   `src/model.py`: `Simple3DCNN` architecture.
+*   `src/train.py`: Training loop and configuration.
+*   `src/evaluate.py`: Evaluation script.
+*   `src/visualize.py`: Script to generate Grad-CAM visualizations for a batch of samples.
+*   `src/gradcam.py`: Implementation of the Grad-CAM algorithm for 3D CNNs.
+*   `src/utils.py`: Helper functions for visualization.
+
+## Improvements Implemented
+
+*   **Data Augmentation:** Random rotation and flipping are now applied during training to improve model generalization.
+*   **Evaluation Script:** A dedicated script `src/evaluate.py` is provided to assess model performance.
+*   **Grad-CAM:** Integrated Grad-CAM for model explainability, allowing visualization of salient regions in 3D CT scans.
