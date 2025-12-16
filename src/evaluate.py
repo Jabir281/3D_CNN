@@ -17,7 +17,8 @@ def evaluate(config):
     # For this example, we'll just evaluate on the same dataset (or a subset if you implement splitting)
     if os.path.exists(config['processed_dir']):
         dataset = ProcessedLunaDataset(processed_dir=config['processed_dir'])
-        dataloader = DataLoader(dataset, batch_size=config['batch_size'], shuffle=False)
+        # Use multiple workers for faster data loading
+        dataloader = DataLoader(dataset, batch_size=config['batch_size'], shuffle=False, num_workers=8, pin_memory=True)
     else:
         print("Processed data not found. Please run preprocessing first.")
         return
