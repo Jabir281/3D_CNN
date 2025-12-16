@@ -69,7 +69,7 @@ def evaluate(config):
 if __name__ == "__main__":
     config = {
         'processed_dir': 'data/processed',
-        'model_path': 'model_epoch_5.pth', # Change to your best model checkpoint
+        'model_path': 'results/model_epoch_20.pth', # Change to your best model checkpoint
         'batch_size': 8
     }
     evaluate(config)

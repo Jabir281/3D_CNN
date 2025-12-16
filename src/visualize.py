@@ -114,7 +114,7 @@ def visualize_results(config):
 if __name__ == "__main__":
     config = {
         'processed_dir': 'data/processed',
-        'model_path': 'model_epoch_5.pth', # Update with your best model
+        'model_path': 'results/model_epoch_20.pth', # Update with your best model
         'output_dir': 'results/visualizations'
     }
     visualize_results(config)

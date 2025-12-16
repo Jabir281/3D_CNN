@@ -45,10 +45,13 @@ def train(config):
     # Model
     model = Simple3DCNN().to(device)
     
-    # Resume from checkpoint if enabled
+    # Create results directory
+    os.makedirs("results", exist_ok=True)
+
+    # Check for resume
     start_epoch = 0
     if config.get('resume', False):
-        checkpoints = glob.glob("model_epoch_*.pth")
+        checkpoints = glob.glob("results/model_epoch_*.pth")
         if checkpoints:
             # Sort by epoch number extracted from filename
             checkpoints.sort(key=lambda x: int(re.search(r'model_epoch_(\d+).pth', x).group(1)))
@@ -63,7 +66,7 @@ def train(config):
                 print(f"Error loading checkpoint: {e}")
                 print("Starting from scratch.")
         else:
-            print("No checkpoints found. Starting from scratch.")
+            print("No checkpoints found in results/. Starting from scratch.")
 
     # Loss and Optimizer
     criterion = nn.BCELoss()
@@ -94,7 +97,7 @@ def train(config):
         print(f"Epoch {epoch+1} finished. Average Loss: {running_loss / len(train_loader)}")
         
         # Save checkpoint
-        torch.save(model.state_dict(), f"model_epoch_{epoch+1}.pth")
+        torch.save(model.state_dict(), f"results/model_epoch_{epoch+1}.pth")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Train 3D CNN for Lung Cancer Detection')
