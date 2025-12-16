@@ -114,7 +114,7 @@ if __name__ == "__main__":
         'data_dir': 'data/subset0',
         'candidates_file': 'data/candidates.csv',
         'output_dir': 'data/processed',
-        'num_workers': 6 # User requested 6 workers
+        'num_workers': 8 # User requested 8 workers
     }
     
     # Check inputs
