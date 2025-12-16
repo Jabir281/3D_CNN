@@ -103,7 +103,7 @@ if __name__ == "__main__":
         'data_dir': 'data/subset0',
         'candidates_file': 'data/candidates.csv',
         'output_dir': 'data/processed',
-        'num_workers': 4 # Safe default for 12 vCPU machine to avoid memory freeze
+        'num_workers': 6 # User requested 6 workers
     }
     
     # Check inputs
