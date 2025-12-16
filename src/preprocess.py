@@ -16,13 +16,6 @@ from functools import partial
 
 def process_sample(i, dataset, patches_dir):
     try:
-        # raw_dataset[i] returns (patch_tensor, label_tensor)
-        patch_tensor, label_tensor = dataset[i]
-        
-        # Convert back to numpy for saving
-        # patch_tensor is (1, 64, 64, 64) -> save as (64, 64, 64)
-        patch_array = patch_tensor.numpy()[0] 
-        
         # Get metadata for filename
         row = dataset.candidates.iloc[i]
         series_uid = row['seriesuid']
@@ -30,6 +23,24 @@ def process_sample(i, dataset, patches_dir):
         # Create a unique filename: seriesuid_index.npy
         filename = f"{series_uid}_{i}.npy"
         file_path = os.path.join(patches_dir, filename)
+        
+        # Check if file already exists (Resume capability)
+        if os.path.exists(file_path):
+            # If it exists, we just need the metadata, we don't need to load the heavy image
+            label = int(row['class']) if 'class' in row else 0
+            return {
+                'filename': filename,
+                'label': label,
+                'seriesuid': series_uid,
+                'original_index': i
+            }
+
+        # raw_dataset[i] returns (patch_tensor, label_tensor)
+        patch_tensor, label_tensor = dataset[i]
+        
+        # Convert back to numpy for saving
+        # patch_tensor is (1, 64, 64, 64) -> save as (64, 64, 64)
+        patch_array = patch_tensor.numpy()[0] 
         
         # Save the numpy array
         np.save(file_path, patch_array)
