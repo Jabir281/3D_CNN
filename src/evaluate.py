@@ -71,6 +71,6 @@ if __name__ == "__main__":
     config = {
         'processed_dir': 'data/processed',
         'model_path': 'results/model_epoch_20.pth', # Change to your best model checkpoint
-        'batch_size': 8
+        'batch_size': 128 # Increased for A100 GPU
     }
     evaluate(config)
