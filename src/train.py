@@ -6,6 +6,10 @@ from dataset import LunaDataset, ProcessedLunaDataset
 from model import Simple3DCNN
 from tqdm import tqdm
 import os
+import glob
+import re
+
+import argparse
 
 def train(config):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -16,7 +20,10 @@ def train(config):
     learning_rate = config.get('learning_rate', 0.001)
     num_epochs = config.get('num_epochs', 10)
     use_processed = config.get('use_processed', False)
+    num_workers = config.get('num_workers', 0)
     
+    print(f"Batch Size: {batch_size}, Epochs: {num_epochs}, LR: {learning_rate}")
+
     # Dataset and DataLoader
     if use_processed and os.path.exists(config['processed_dir']):
         print(f"Loading processed data from {config['processed_dir']}...")
@@ -33,17 +40,37 @@ def train(config):
             patch_size=(64, 64, 64)
         )
     
-    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=0)
+    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers)
     
     # Model
     model = Simple3DCNN().to(device)
     
+    # Resume from checkpoint if enabled
+    start_epoch = 0
+    if config.get('resume', False):
+        checkpoints = glob.glob("model_epoch_*.pth")
+        if checkpoints:
+            # Sort by epoch number extracted from filename
+            checkpoints.sort(key=lambda x: int(re.search(r'model_epoch_(\d+).pth', x).group(1)))
+            latest_checkpoint = checkpoints[-1]
+            print(f"Resuming from checkpoint: {latest_checkpoint}")
+            
+            try:
+                model.load_state_dict(torch.load(latest_checkpoint, map_location=device))
+                start_epoch = int(re.search(r'model_epoch_(\d+).pth', latest_checkpoint).group(1))
+                print(f"Resuming training from epoch {start_epoch + 1}")
+            except Exception as e:
+                print(f"Error loading checkpoint: {e}")
+                print("Starting from scratch.")
+        else:
+            print("No checkpoints found. Starting from scratch.")
+
     # Loss and Optimizer
     criterion = nn.BCELoss()
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
     
     # Training Loop
-    for epoch in range(num_epochs):
+    for epoch in range(start_epoch, num_epochs):
         model.train()
         running_loss = 0.0
         
@@ -70,6 +97,15 @@ def train(config):
         torch.save(model.state_dict(), f"model_epoch_{epoch+1}.pth")
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Train 3D CNN for Lung Cancer Detection')
+    parser.add_argument('--batch_size', type=int, default=4, help='Batch size for training')
+    parser.add_argument('--epochs', type=int, default=5, help='Number of epochs')
+    parser.add_argument('--lr', type=float, default=1e-4, help='Learning rate')
+    parser.add_argument('--num_workers', type=int, default=4, help='Number of worker threads for data loading')
+    parser.add_argument('--no_resume', action='store_true', help='Do not resume from checkpoint')
+    
+    args = parser.parse_args()
+
     # Configuration
     # Update these paths to where you extracted the LUNA16 data
     config = {
@@ -78,9 +114,11 @@ if __name__ == "__main__":
         'annotations_file': 'data/annotations.csv',
         'processed_dir': 'data/processed',
         'use_processed': True, # Set to True to use preprocessed data
-        'batch_size': 4,
-        'learning_rate': 1e-4,
-        'num_epochs': 5
+        'resume': not args.no_resume, # Auto-resume from latest checkpoint
+        'batch_size': args.batch_size,
+        'learning_rate': args.lr,
+        'num_epochs': args.epochs,
+        'num_workers': args.num_workers
     }
     
     # Check if data exists before running
