@@ -63,7 +63,9 @@ def preprocess_data(config):
     print(f"Saving processed patches to {patches_dir}")
     
     # Use multiprocessing
-    num_workers = config.get('num_workers', cpu_count())
+    # Default to half the CPUs to avoid memory issues, or 4 if not specified
+    default_workers = max(1, cpu_count() // 2)
+    num_workers = config.get('num_workers', default_workers)
     print(f"Using {num_workers} workers for preprocessing.")
     
     # We need to pass the dataset to the worker, but passing the whole dataset object 
@@ -101,7 +103,7 @@ if __name__ == "__main__":
         'data_dir': 'data/subset0',
         'candidates_file': 'data/candidates.csv',
         'output_dir': 'data/processed',
-        'num_workers': os.cpu_count() # Use all available cores
+        'num_workers': 4 # Safe default for 12 vCPU machine to avoid memory freeze
     }
     
     # Check inputs
