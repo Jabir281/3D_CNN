@@ -6,6 +6,7 @@ from model import Simple3DCNN
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
 import os
 import numpy as np
+from tqdm import tqdm
 
 def evaluate(config):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -38,7 +39,7 @@ def evaluate(config):
     
     print("Starting evaluation...")
     with torch.no_grad():
-        for inputs, labels in dataloader:
+        for inputs, labels in tqdm(dataloader, desc="Evaluating"):
             inputs = inputs.to(device)
             labels = labels.to(device).unsqueeze(1)
             
