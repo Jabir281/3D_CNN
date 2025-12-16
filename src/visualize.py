@@ -46,7 +46,8 @@ def visualize_results(config):
         
     dataset = ProcessedLunaDataset(processed_dir=config['processed_dir'], augment=False)
     # Use a smaller batch size for visualization or just iterate one by one
-    dataloader = DataLoader(dataset, batch_size=1, shuffle=False)
+    # Added num_workers=4 to speed up data loading
+    dataloader = DataLoader(dataset, batch_size=1, shuffle=False, num_workers=4)
     
     # Load Model
     model = Simple3DCNN().to(device)
